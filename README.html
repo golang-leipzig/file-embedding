@@ -148,7 +148,7 @@
 <li>failed to set it up for my example application, I really wonder why this got popular <span class="emoji" data-emoji="man_shrugging">🤷‍♂️</span></li>
 </ul></li>
 </ul>
-<h2 id="its-time-yet-another-file-embedding-tool">It’s Time Yet Another File Embedding Tool</h2>
+<h2 id="its-time-for-yet-another-file-embedding-tool">It’s Time for Yet Another File Embedding Tool</h2>
 <ul>
 <li><a href="https://github.com/klingtnet/embed">embed</a> treats <a href="https://en.wikipedia.org/wiki/Not_invented_here">Not Invented Here syndrome</a> and enforces <a href="https://en.wikipedia.org/wiki/Dogfooding">dogfooding</a></li>
 <li><a href="https://gist.github.com/klingtnet/b66ecace3e87b10972245fec7e4c3fc5#file-teeny-tiny-file-embed-go">tiny prototype implementation</a> (still a single Go file)</li>
@@ -197,16 +197,34 @@
 <span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>   <span class="ex">--help</span>, -h                                   show help (default: false)</span>
 <span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>   <span class="ex">--version</span>, -v                                print the version (default: false)</span></code></pre></div>
 <h2 id="draft-for-embedded-static-files">Draft for Embedded Static Files</h2>
+<p><a href="https://go.googlesource.com/proposal/+/master/design/draft-embed.md">The draft</a>—published by Russ Cox and Brad Fitzpatrick in July—identified the following problems with the current situation:</p>
 <ul>
-<li><a href="https://go.googlesource.com/proposal/+/master/design/draft-embed.md">draft</a> (<a href="https://github.com/golang/go/issues/35950">proposal PR</a>/<a href="https://github.com/golang/go/issues/41191">adopt PR</a> and <a href="https://golang.org/s/draft-embed-video">video</a>) published by Russ Cox and Brad Fitzpatrick in July</li>
-<li>planned to be integrated into <a href="https://tip.golang.org/doc/go1.16">Go 1.16</a> (February 2021)</li>
-<li>aims to overcome the following downsides that all existing implementations have in common:
-<ul>
-<li>need to be run before <code>go build</code> (there is <a href="https://github.com/golang/go/issues/35950">no compile time function evaluation in Go</a>) → not <code>go install</code> able anymore</li>
-<li>require to add additional file[s] to version control</li>
-</ul></li>
-<li>draft proposes a <code>go generate</code> based approach</li>
+<li>too many existing tools <span class="emoji" data-emoji="sweat_smile">😅</span></li>
+<li>all depend on a manual generation step</li>
+<li>generated file bloats git history (with a second slightly larger copy of each file)</li>
+<li>not go-gettable if generated file is not checked into source control</li>
 </ul>
-<p>TODO: explain the goals and what differs from my implementation</p>
+<p>Adding support for file embedding to the <code>go</code> command will eliminate those problems.</p>
+<p>Proposed changes:</p>
+<ul>
+<li>new <code>//go:embed</code> directive</li>
+<li><code>embed</code> package containing <code>embed.Files</code> that implements <code>fs.FS</code> <sup><a href="https://golang.org/s/draft-iofs-design">file system interface draft</a></sup> which makes it directly usable with <code>net/http</code> and <code>hmtl/template</code></li>
+</ul>
+<p>Here’s an <a href="https://go.googlesource.com/proposal/+/master/design/draft-embed.md#go_embed-directives">example for the embed directive</a>:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">// content holds our static web server content.</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co">//go:embed image/* template/*</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co">//go:embed html/index.html</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="kw">var</span> content embed.Files</span></code></pre></div>
+<p>The <a href="https://go.googlesource.com/proposal/+/master/design/draft-embed.md">draft</a> also contains various considerations regarding:</p>
+<ul>
+<li><a href="https://go.googlesource.com/proposal/+/master/design/draft-embed.md#dot_dot_module-boundaries_and-file-name-restrictions">directory traversal</a>, e.g. <code>../../../etc/passwd</code> should be prevented by disallowing paths above the module root</li>
+<li><a href="https://go.googlesource.com/proposal/+/master/design/draft-embed.md#compression-to-reduce-binary-size">content compression</a> is discussed but left open as an implementation detail</li>
+</ul>
+<p>Still curious?</p>
+<ul>
+<li>watch the <a href="https://golang.org/s/draft-embed-video">draft presentation video</a>, <a href="https://github.com/golang/go/issues/35950">proposal pull request</a> and its follow up <a href="https://github.com/golang/go/issues/41191">adoption pull request</a></li>
+<li>there <a href="https://github.com/golang/go/issues/35950#issuecomment-561797246">was</a> also <a href="https://github.com/golang/go/issues/35950#issuecomment-561718302">the idea to just have a magic directory</a> called <code>static</code></li>
+<li>should embed include <a href="https://github.com/golang/go/issues/42328#issuecomment-720169922">hidden files</a>?</li>
+</ul>
 </body>
 </html>
