@@ -1,5 +1,7 @@
 .PHONY: convert README.html
 
+all: convert
+
 open:
 	@xdg-open README.html
 
