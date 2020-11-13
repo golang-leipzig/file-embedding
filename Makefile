@@ -2,7 +2,7 @@
 
 all: convert
 
-open:
+open: README.html
 	@xdg-open README.html
 
 watch:
