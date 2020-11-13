@@ -30,6 +30,7 @@
 ## Advantages :thumbsup:
 
 - only a single file needs to be distributed/deployed
+- especially useful for desktop applications (no need for `$XDG_HOME`, `%APPDATA%` or `~/Library`)
 - embedded data is "immutable" (at least from outside the process)
 
 ## Disadvantages :thumbsdown:
